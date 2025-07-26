@@ -1,31 +1,30 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
-# Copy example env if .env doesn't exist
-if [ ! -f .env ]; then
-    cp .env.example .env
+# If .env doesn't exist, copy .env.example
+[ ! -f .env ] && cp .env.example .env
+
+# Generate an APP_KEY if missing
+if ! grep -q '^APP_KEY=' .env; then
+    php artisan key:generate --show | xargs -I{} sed -i "s|^APP_KEY=.*|APP_KEY={}|g" .env
 fi
 
-# Generate app key if not provided
-if ! grep -q '^APP_KEY=' .env || [ -z "$APP_KEY" ]; then
-    php artisan key:generate --force
-fi
-
-# Run Akaunting installer if requested
-if [ "$AKAUNTING_SETUP" = "true" ]; then
+# Run installer only on first run
+if [ "${AKAUNTING_SETUP}" = "true" ]; then
     php artisan install \
-        --db-host="$DB_HOST" \
-        --db-port="$DB_PORT" \
-        --db-name="$DB_NAME" \
-        --db-username="$DB_USERNAME" \
-        --db-password="$DB_PASSWORD" \
-        --db-prefix="$DB_PREFIX" \
-        --admin-email="$ADMIN_EMAIL" \
-        --admin-password="$ADMIN_PASSWORD" \
-        --company-name="$COMPANY_NAME" \
-        --company-email="$COMPANY_EMAIL" \
-        --locale="$LOCALE" \
-        --yes
+        --db-host="${DB_HOST}" \
+        --db-port="${DB_PORT}" \
+        --db-name="${DB_NAME}" \
+        --db-username="${DB_USERNAME}" \
+        --db-password="${DB_PASSWORD}" \
+        --db-prefix="${DB_PREFIX}" \
+        --company-name="${COMPANY_NAME}" \
+        --company-email="${COMPANY_EMAIL}" \
+        --admin-email="${ADMIN_EMAIL}" \
+        --admin-password="${ADMIN_PASSWORD}" \
+        --locale="${LOCALE}"
+    # Remove setup flag so it doesn't run again
+    sed -i 's/AKAUNTING_SETUP=true/AKAUNTING_SETUP=false/' .env
 fi
 
 exec "$@"
