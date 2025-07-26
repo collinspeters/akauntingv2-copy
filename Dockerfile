@@ -8,10 +8,11 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libjpeg-dev \
     libfreetype6-dev \
+    libicu-dev \
     libzip-dev \
     libpq-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_pgsql pdo_mysql gd zip \
+    && docker-php-ext-install pdo pdo_pgsql pdo_mysql gd zip bcmath intl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Enable Apache mod_rewrite
